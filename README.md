@@ -87,8 +87,8 @@ tests/ # API integration tests
 - [x] Repo scaffold (`pyproject.toml`, `.gitignore`, `LICENSE`)
 - [x] Architecture docs (this file)
 - [x] Docker Compose for Neo4j + Qdrant
-- [ ] Config module
-- [ ] Logging utility
+- [x] Config module
+- [x] Logging utility
 - [ ] Neo4j client
 - [ ] Qdrant client
 - [ ] Ingestion ETL pipeline
