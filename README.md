@@ -31,7 +31,7 @@ it needs semantic recall, relational traversal, or both:
                  │   (Vertex AI Gemini)    │
                  └────┬──────────────┬─────┘
                       │              │
-          ┌───────────▼──┐     ┌─────▼──────────┐
+          ┌───────────▼──┐      ┌─────▼──────────┐
           │ vector_search │     │  graph_search   │
           │   (Qdrant)    │     │    (Neo4j)      │
           └───────┬───────┘     └────────┬────────┘
