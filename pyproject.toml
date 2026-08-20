@@ -1,0 +1,6 @@
+[project]
+name = "agentic-graph-rag"
+version = "0.1.0"
+description = "Agentic RAG that fuses vector search and knowledge graph retrieval, orchestrated with LangGraph and evaluated with RAGAS."
+requires-python = ">=3.11"
+dependencies = []
