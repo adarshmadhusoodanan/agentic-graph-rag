@@ -46,12 +46,12 @@ class Settings(BaseSettings):
         description="GCP Region where Vertex AI resources are provisioned.",
     )
     EMBEDDING_MODEL_NAME: str = Field(
-        default="text-embedding-004",
+        default="gemini-embedding-001",
         description="Vertex AI embedding model identifier.",
     )
     LLM_MODEL_NAME: str = Field(
-        default="gemini-1.5-pro",
-        description="Vertex AI Gemini model identifier for the agent.",
+        default="gemini-3.7-flash",
+        description="Vertex AI Gemini model identifier for the agent (GA, agentic-tuned).",
     )
 
     # ------------------------------------------------------------------
@@ -67,7 +67,7 @@ class Settings(BaseSettings):
         description="Neo4j authentication username.",
     )
     NEO4J_PASSWORD: SecretStr = Field(
-        default=SecretStr("password123"),
+        default=SecretStr("changeme-dev-password"),
         description="Neo4j authentication password.",
     )
     NEO4J_AUTH: str | None = Field(
@@ -116,7 +116,11 @@ class Settings(BaseSettings):
     QDRANT_VECTOR_SIZE: int = Field(
         default=768,
         gt=0,
-        description="Dimensionality of text embeddings.",
+        description=(
+            "Dimensionality of text embeddings. Must match the output_dimensionality "
+            "passed to the embedding call -- gemini-embedding-001 defaults to 3072; "
+            "768 requires explicitly requesting that truncation."
+        ),
     )
     QDRANT_USE_GRPC: bool = Field(
         default=True,
