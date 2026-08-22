@@ -90,8 +90,8 @@ tests/ # API integration tests
 - [x] Config module
 - [x] Logging utility
 - [x] Neo4j client
-- [ ] Qdrant client
-- [ ] Ingestion ETL pipeline
+- [x] Qdrant client
+- [x] Ingestion ETL pipeline
 - [ ] Ingestion CLI entrypoint
 - [ ] Vector search
 - [ ] Graph search
