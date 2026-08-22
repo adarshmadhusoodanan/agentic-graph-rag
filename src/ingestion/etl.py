@@ -116,21 +116,32 @@ Text:
 """
 
 
-def extract_entities_and_relations(text: str) -> ExtractionResult:
-    """Ask the LLM to extract a small knowledge graph from one chunk of text."""
-    response = _client.models.generate_content(
-        model=settings.LLM_MODEL_NAME,
-        contents=_EXTRACTION_PROMPT.format(text=text),
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=ExtractionResult,
-            temperature=0.0,  # deterministic extraction, not creative generation
-        ),
-    )
-    if response.parsed is None:
-        logger.warning("Entity extraction returned unparseable output; skipping chunk")
-        return ExtractionResult(entities=[], relationships=[])
-    return response.parsed
+def extract_entities_and_relations(
+    text: str, max_attempts: int = 2
+) -> ExtractionResult:
+    """Ask the LLM to extract a small knowledge graph from one chunk of text.
+
+    Retries once on unparseable output before giving up -- occasional schema
+    drift from free-form generation is expected, not a hard failure.
+    """
+    for attempt in range(1, max_attempts + 1):
+        response = _client.models.generate_content(
+            model=settings.LLM_MODEL_NAME,
+            contents=_EXTRACTION_PROMPT.format(text=text),
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=ExtractionResult,
+                temperature=0.0,  # deterministic extraction, not creative generation
+            ),
+        )
+        if response.parsed is not None:
+            return response.parsed
+        logger.warning(
+            "Entity extraction returned unparseable output (attempt %d/%d)",
+            attempt,
+            max_attempts,
+        )
+    return ExtractionResult(entities=[], relationships=[])
 
 
 def _normalize_relation_type(relation: str) -> str:
