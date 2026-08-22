@@ -89,7 +89,7 @@ tests/ # API integration tests
 - [x] Docker Compose for Neo4j + Qdrant
 - [x] Config module
 - [x] Logging utility
-- [ ] Neo4j client
+- [x] Neo4j client
 - [ ] Qdrant client
 - [ ] Ingestion ETL pipeline
 - [ ] Ingestion CLI entrypoint
