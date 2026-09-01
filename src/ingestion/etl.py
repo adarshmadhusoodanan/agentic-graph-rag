@@ -9,7 +9,7 @@ Turns one raw document into two parallel representations:
 This is the offline half of the architecture described in the README;
 src/retrieval reads what this module writes.
 """
-
+import re
 from pydantic import BaseModel
 
 from src.db.neo4j_graph_client import get_neo4j_client

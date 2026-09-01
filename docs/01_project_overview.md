@@ -80,6 +80,7 @@ The main objectives are:
 
 # System Scope
     In scope
+
     Document ingestion
     Document chunking
     Embedding generation
@@ -95,15 +96,12 @@ The main objectives are:
     API access
     Evaluation
     Automated testing
+
     Out of scope
 
-Initially, you can explicitly state that these are not supported:
-
-Real-time document synchronization
-Multi-user authentication
-Fine-tuning Gemini
-Distributed Qdrant/Neo4j clusters
-Production-scale horizontal deployment
-Automatic knowledge graph correction
-
-This makes the project scope clear.
+    Real-time document synchronization
+    Multi-user authentication
+    Fine-tuning Gemini
+    Distributed Qdrant/Neo4j clusters
+    Production-scale horizontal deployment
+    Automatic knowledge graph correction
