@@ -92,8 +92,8 @@ tests/ # API integration tests
 - [x] Neo4j client
 - [x] Qdrant client
 - [x] Ingestion ETL pipeline
-- [ ] Ingestion CLI entrypoint
-- [ ] Vector search
+- [X] Ingestion CLI entrypoint
+- [X] Vector search
 - [ ] Graph search
 - [ ] Fusion ranker
 - [ ] Agent state schema
