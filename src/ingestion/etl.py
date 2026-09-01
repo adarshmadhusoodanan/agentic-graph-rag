@@ -10,24 +10,14 @@ This is the offline half of the architecture described in the README;
 src/retrieval reads what this module writes.
 """
 
-import re
-
-from google import genai
-from google.genai import types
 from pydantic import BaseModel
 
-from src.config import settings
 from src.db.neo4j_graph_client import get_neo4j_client
 from src.db.qdrant_vector_client import get_vector_client, stable_point_id
+from src.db.vertex_client import embed_texts, generate_content
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
-
-_client = genai.Client(
-    vertexai=True,
-    project=settings.GOOGLE_CLOUD_PROJECT,
-    location=settings.GOOGLE_CLOUD_REGION,
-)
 
 
 # ---------------------------------------------------------------------------
@@ -56,33 +46,6 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 150) -> list[st
         chunks.append(text[start:end])
         start = end - overlap
     return chunks
-
-
-# ---------------------------------------------------------------------------
-# Embedding
-# ---------------------------------------------------------------------------
-
-
-def embed_texts(
-    texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT"
-) -> list[list[float]]:
-    """Embed a batch of texts with Vertex AI, truncated to QDRANT_VECTOR_SIZE.
-
-    task_type is asymmetric by design: documents being indexed use
-    RETRIEVAL_DOCUMENT here, but a query embedded at search time must use
-    RETRIEVAL_QUERY instead (see retrieval/vector_search.py) -- using the
-    same task_type on both sides measurably hurts retrieval quality with
-    this model family.
-    """
-    response = _client.models.embed_content(
-        model=settings.EMBEDDING_MODEL_NAME,
-        contents=texts,
-        config=types.EmbedContentConfig(
-            task_type=task_type,
-            output_dimensionality=settings.QDRANT_VECTOR_SIZE,
-        ),
-    )
-    return [embedding.values for embedding in response.embeddings]
 
 
 # ---------------------------------------------------------------------------
@@ -125,14 +88,11 @@ def extract_entities_and_relations(
     drift from free-form generation is expected, not a hard failure.
     """
     for attempt in range(1, max_attempts + 1):
-        response = _client.models.generate_content(
-            model=settings.LLM_MODEL_NAME,
-            contents=_EXTRACTION_PROMPT.format(text=text),
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=ExtractionResult,
-                temperature=0.0,  # deterministic extraction, not creative generation
-            ),
+        response = generate_content(
+            _EXTRACTION_PROMPT.format(text=text),
+            response_mime_type="application/json",
+            response_schema=ExtractionResult,
+            temperature=0.0,
         )
         if response.parsed is not None:
             return response.parsed
