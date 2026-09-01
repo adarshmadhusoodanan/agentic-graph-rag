@@ -69,17 +69,17 @@ Raw docs -> chunk -> embed (Vertex AI) --------------> Qdrant -> extract entitie
 This grows commit by commit — see **Build roadmap** below for what actually
 exists right now.
 
-src/
-├── config.py # env/settings loading
-├── ingest.py # ingestion CLI entrypoint
-├── agent/ # LangGraph agent: state, tools, nodes, graph
-├── api/ # FastAPI app
-├── db/ # Neo4j + Qdrant client wrappers
-├── eval/ # RAGAS evaluation pipeline
-├── ingestion/ # chunk/embed/extract ETL
-├── retrieval/ # vector_search, graph_search, fusion
-└── utils/ # logging, shared helpers
-tests/ # API integration tests
+    src/
+    ├── config.py # env/settings loading
+    ├── ingest.py # ingestion CLI entrypoint
+    ├── agent/ # LangGraph agent: state, tools, nodes, graph
+    ├── api/ # FastAPI app
+    ├── db/ # Neo4j + Qdrant client wrappers
+    ├── eval/ # RAGAS evaluation pipeline
+    ├── ingestion/ # chunk/embed/extract ETL
+    ├── retrieval/ # vector_search, graph_search, fusion
+    └── utils/ # logging, shared helpers
+    tests/ # API integration tests
 
 
 ## Build roadmap
@@ -94,7 +94,7 @@ tests/ # API integration tests
 - [x] Ingestion ETL pipeline
 - [X] Ingestion CLI entrypoint
 - [X] Vector search
-- [ ] Graph search
+- [x] Graph search
 - [ ] Fusion ranker
 - [ ] Agent state schema
 - [ ] Agent tools
