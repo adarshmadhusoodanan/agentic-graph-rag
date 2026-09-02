@@ -95,7 +95,7 @@ exists right now.
 - [X] Ingestion CLI entrypoint
 - [X] Vector search
 - [x] Graph search
-- [ ] Fusion ranker
+- [x] Fusion ranker
 - [ ] Agent state schema
 - [ ] Agent tools
 - [ ] Agent node functions
