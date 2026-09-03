@@ -97,8 +97,8 @@ exists right now.
 - [x] Graph search
 - [x] Fusion ranker
 - [x] Agent state schema
-- [ ] Agent tools
-- [ ] Agent node functions
+- [x] Agent tools
+- [x] Agent node functions
 - [ ] Agent graph (LangGraph wiring)
 - [ ] FastAPI app
 - [ ] RAGAS evaluation pipeline
