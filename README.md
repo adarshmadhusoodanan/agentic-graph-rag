@@ -96,7 +96,7 @@ exists right now.
 - [X] Vector search
 - [x] Graph search
 - [x] Fusion ranker
-- [ ] Agent state schema
+- [x] Agent state schema
 - [ ] Agent tools
 - [ ] Agent node functions
 - [ ] Agent graph (LangGraph wiring)
