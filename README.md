@@ -99,7 +99,7 @@ exists right now.
 - [x] Agent state schema
 - [x] Agent tools
 - [x] Agent node functions
-- [ ] Agent graph (LangGraph wiring)
+- [x] Agent graph (LangGraph wiring)
 - [ ] FastAPI app
 - [ ] RAGAS evaluation pipeline
 - [ ] Unit tests (retrieval, agent)
