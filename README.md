@@ -100,8 +100,8 @@ exists right now.
 - [x] Agent tools
 - [x] Agent node functions
 - [x] Agent graph (LangGraph wiring)
-- [ ] FastAPI app
-- [ ] RAGAS evaluation pipeline
+- [x] FastAPI app
+- [x] RAGAS evaluation pipeline
 - [ ] Unit tests (retrieval, agent)
 - [ ] Integration tests (API)
 - [ ] Pytest config
