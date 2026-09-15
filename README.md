@@ -102,7 +102,7 @@ exists right now.
 - [x] Agent graph (LangGraph wiring)
 - [x] FastAPI app
 - [x] RAGAS evaluation pipeline
-- [ ] Unit tests (retrieval, agent)
+- [x] Unit tests (retrieval, agent)
 - [ ] Integration tests (API)
 - [ ] Pytest config
 - [ ] Final polish & usage docs
