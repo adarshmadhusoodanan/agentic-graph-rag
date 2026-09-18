@@ -1,107 +1,144 @@
 # Project Overview
 
-Agentic Graph RAG is an intelligent Retrieval-Augmented Generation system that combines semantic vector retrieval and structured graph retrieval.
+## Agentic Graph RAG
 
-Unlike traditional RAG systems that rely only on vector similarity, this system allows an LLM-powered agent to dynamically determine whether a question requires:
+Agentic Graph RAG is an intelligent Retrieval-Augmented Generation system that combines semantic vector retrieval, structured graph retrieval, and relevance reranking.
 
-Semantic retrieval
-Graph traversal
-Both retrieval strategies
+The system uses a LangGraph-based LLM agent to determine whether a query requires:
 
-The retrieved information is then combined, reranked, and passed to the LLM to generate a grounded answer with source references.
+- Semantic vector retrieval
+- Structured graph traversal
+- Both retrieval strategies
 
-## Core technologies
-        Component	            Technology
-        API	                    FastAPI
-        Agent	                LangGraph
-        LLM	                    Google Vertex AI Gemini
-        Embeddings	            Vertex AI
-        Vector DB	            Qdrant
-        Graph DB	            Neo4j
-        Evaluation	            RAGAS
-        Task/ETL	            Python
-        Package Manager	        uv
-        Infrastructure	        Docker Compose
-        Testing	                Pytest
+Retrieved candidates are then scored for query relevance using **TypeSafe Jev**, fused when necessary, and passed to **Google Vertex AI Gemini** to generate a grounded answer with source references.
 
-# Problem Statement
 
-Traditional RAG systems primarily perform similarity-based retrieval.
+## TypeSafe Jev Capability Alignment
 
-For example:
+The Jev layer is designed around the search-and-retrieval capabilities documented by
+TypeSafe: semantic search, query-to-candidate relevance scoring, pairwise result
+reranking, cross-encoding for higher precision, and selecting useful context for
+downstream AI workflows.
 
-"What is Kubernetes?"
+In this project, Jev is an optional query-time layer that can be used in several modes:
 
-A vector database can retrieve documents discussing Kubernetes effectively.
+1. **Candidate scoring:** score each vector or graph-derived candidate against the user query.
+2. **Pairwise ranking:** compare candidates when relative ordering is more useful than an isolated score.
+3. **Cross-encoded precision pass:** apply a higher-precision query/candidate assessment to a bounded candidate set.
+4. **Context selection:** retain the most useful evidence before sending context to Gemini.
 
-However, consider:
+The implementation should select the mode appropriate to the latency budget and evaluation
+results. The initial MVP may begin with per-candidate scoring, while the interface should
+allow pairwise ranking or cross-encoding to be introduced without changing the retrieval
+providers.
 
-"Which services depend on the authentication service used by Project X?"
+## Why Vector + Graph + Jev?
 
-This requires understanding relationships such as:
+Traditional vector RAG retrieves content based on embedding similarity. This works well for semantically similar questions but can struggle with explicit relationships and multi-hop queries.
 
-            Project X
-            ↓
-            uses
-            ↓
-            Authentication Service
-            ↓
-            used_by
-            ↓
-            Service A
-            Service B
-            Service C
+Neo4j provides structured traversal over entities and relationships. However, graph traversal order alone does not necessarily represent relevance to the user's question.
 
-Vector similarity alone cannot reliably perform this type of multi-hop reasoning.
+TypeSafe Jev is used as a semantic search, scoring, and ranking layer. It can score query-to-candidate relevance, cross-encode queries and candidates for higher precision, support pairwise result comparisons, and select useful context before answer generation.
 
-Therefore, the system combines:
+## Core Technologies
 
-            Vector Search
-                +
-            Graph Search
-                +
-            LLM Agent
+| Layer | Technology | Responsibility |
+|---|---|---|
+| API | FastAPI | Exposes the query endpoint |
+| Agent orchestration | LangGraph | Controls query state and retrieval decisions |
+| Reasoning / generation | Vertex AI Gemini | Query analysis, extraction, and grounded answer generation |
+| Embeddings | Vertex AI | Creates document and query embeddings |
+| Vector store | Qdrant | Stores and retrieves embedded document chunks |
+| Graph store | Neo4j | Stores entities and relationships for traversal |
+| Relevance scoring | TypeSafe Jev | Scores candidate relevance against the query |
+| Evaluation | RAGAS | Evaluates retrieval and answer quality |
+| Language | Python | Application and ETL implementation |
+| Dependency management | uv | Reproducible Python environments |
+| Local infrastructure | Docker Compose | Runs Neo4j and Qdrant locally |
+| Testing | Pytest | Unit and integration testing |
 
-to provide more accurate answers to both semantic and relational questions.
+## High-Level Architecture
 
-# Objectives
+```mermaid
+flowchart TB
+    Client[Client / User]
+    API[FastAPI /query]
+    Agent[LangGraph Agent]
+    Router[Retrieval Strategy Router]
 
-The main objectives are:
+    Vector[Vector Search]
+    Graph[Graph Search]
 
-    Build a production-oriented Graph RAG architecture.
-    Combine vector and graph retrieval.
-    Allow an LLM agent to select retrieval strategies dynamically.
-    Support multi-hop relationship queries.
-    Provide grounded answers with sources.
-    Separate ingestion from query-time processing.
-    Evaluate retrieval and answer quality using RAGAS.
-    Provide an API through FastAPI.
-    Make the entire local infrastructure reproducible using Docker Compose.
+    Qdrant[(Qdrant)]
+    Neo4j[(Neo4j)]
 
-# System Scope
-    In scope
+    Jev[TypeSafe Jev Semantic Search, Scoring, and Ranking]
+    Fusion[Fusion / Context Preparation]
+    Gemini[Vertex AI Gemini]
+    Response[Grounded Answer + Sources]
 
-    Document ingestion
-    Document chunking
-    Embedding generation
-    Vector storage
-    Entity extraction
-    Relationship extraction
-    Knowledge graph construction
-    Semantic retrieval
-    Graph retrieval
-    Retrieval fusion
-    LLM-based reasoning
-    Source attribution
-    API access
-    Evaluation
-    Automated testing
+    Client --> API
+    API --> Agent
+    Agent --> Router
 
-    Out of scope
+    Router --> Vector
+    Router --> Graph
 
-    Real-time document synchronization
-    Multi-user authentication
-    Fine-tuning Gemini
-    Distributed Qdrant/Neo4j clusters
-    Production-scale horizontal deployment
-    Automatic knowledge graph correction
+    Vector --> Qdrant
+    Graph --> Neo4j
+
+    Qdrant --> Jev
+    Neo4j --> Jev
+    Jev --> Fusion
+    Fusion --> Gemini
+    Gemini --> Response
+    Response --> API
+```
+
+## Main Objectives
+
+- Build a production-oriented Graph RAG architecture.
+- Combine vector and graph retrieval.
+- Allow an LLM agent to select retrieval strategies dynamically.
+- Use Jev to score candidate relevance independently of the main generation model.
+- Support multi-hop relationship queries.
+- Provide grounded answers with source attribution.
+- Separate offline ingestion from query-time processing.
+- Evaluate retrieval, reranking, and answer quality using offline datasets.
+- Provide a FastAPI interface.
+- Keep local infrastructure reproducible through Docker Compose.
+
+## System Scope
+
+### In Scope
+
+- Document ingestion
+- Document chunking
+- Embedding generation
+- Qdrant vector storage
+- Entity and relationship extraction
+- Neo4j graph construction
+- Vector retrieval
+- Graph retrieval
+- Jev-based candidate reranking
+- Result fusion
+- LLM-based answer generation
+- Source attribution
+- API access
+- Evaluation and testing
+
+### Out of Scope
+
+- Real-time document synchronization
+- Multi-user authentication
+- Fine-tuning Gemini or Jev
+- Distributed Qdrant and Neo4j clusters
+- Production-scale horizontal deployment
+- Automatic knowledge graph correction
+- Guaranteed correctness of extracted entities and relationships without validation
+
+> **TypeSafe alignment note:** The Jev capabilities referenced here are based on the
+> official TypeSafe search-and-retrieval use cases: semantic search, query-to-candidate
+> relevance scoring, pairwise reranking, cross-encoding, and context selection.
+> Implementation-specific SDK methods and response fields must be verified against the
+> installed TypeSafe SDK version.

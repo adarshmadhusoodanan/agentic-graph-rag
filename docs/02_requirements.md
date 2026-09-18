@@ -1,171 +1,117 @@
-# Functional Requirements
+# Requirements Specification
 
-These describe what the system must do.
+## Functional Requirements
 
-FR-01 — Document ingestion
+### FR-01 — Document Ingestion
+The system shall accept supported documents as input for ingestion.
 
-The system shall accept documents as input for ingestion.
-
-FR-02 — Document chunking
-
+### FR-02 — Document Chunking
 The system shall split documents into smaller chunks suitable for embedding and retrieval.
 
-FR-03 — Embedding generation
+### FR-03 — Embedding Generation
+The system shall generate embeddings for document chunks using Vertex AI.
 
-The system shall generate vector embeddings for each document chunk using Vertex AI.
-
-FR-04 — Vector storage
-
+### FR-04 — Vector Storage
 The system shall store embeddings and associated metadata in Qdrant.
 
-FR-05 — Entity extraction
+### FR-05 — Entity Extraction
+The system shall identify relevant entities from ingested documents.
 
-The system shall identify relevant entities from documents.
+### FR-06 — Relationship Extraction
+The system shall identify relationships between extracted entities.
 
-Example:
+### FR-07 — Knowledge Graph Construction
+The system shall store extracted entities and relationships in Neo4j.
 
-    John
-    Project Alpha
-    PostgreSQL
-    Authentication Service
-    FR-06 — Relationship extraction
+### FR-08 — Query Processing
+The API shall accept natural-language questions through the query endpoint.
 
-The system shall identify relationships between entities.
+### FR-09 — Retrieval Strategy Selection
+The agent shall determine whether the query requires vector retrieval, graph retrieval, or hybrid retrieval.
 
-Example:
-
-    John ──WORKED_ON──> Project Alpha
-    Project Alpha ──USES──> PostgreSQL
-    FR-07 — Knowledge graph construction
-
-The extracted entities and relationships shall be stored in Neo4j.
-
-FR-08 — Query processing
-
-The API shall accept natural-language questions.
-
-Example:
-
-    POST /query
-    {
-    "query": "Who worked on Project Alpha?"
-    }
-
-FR-09 — Retrieval strategy selection
-
-The agent shall determine whether the query requires:
-
-    Vector Search
-    Graph Search
-    Vector + Graph Search
-    FR-10 — Vector retrieval
-
+### FR-10 — Vector Retrieval
 The system shall retrieve semantically relevant document chunks from Qdrant.
 
-FR-11 — Graph retrieval
+### FR-11 — Graph Retrieval
+The system shall retrieve relevant entities, relationships, and graph-derived facts from Neo4j.
 
-The system shall retrieve relevant entities and relationships from Neo4j.
+### FR-12 — Candidate Normalization
+The system shall convert retrieval outputs into a consistent candidate structure containing text or facts and source metadata.
 
-FR-12 — Result fusion
+### FR-13 — Jev Semantic Search, Scoring, and Ranking
+The system shall optionally score each retrieval candidate with TypeSafe Jev using the user query and candidate content.
 
-The system shall combine results from different retrieval strategies.
+### FR-14 — Jev Semantic Ranking
+The system shall reorder candidates by relevance score, placing failed or unavailable scores after successfully scored candidates.
 
-FR-13 — Answer generation
+### FR-15 — Result Fusion
+The system shall combine candidates from vector and graph retrieval when hybrid retrieval is selected.
 
-The LLM shall generate an answer using the retrieved context.
+### FR-16 — Context Preparation
+The system shall prepare ranked and deduplicated context for answer generation.
 
-FR-14 — Source attribution
+### FR-17 — Answer Generation
+The system shall use Vertex AI Gemini to generate an answer grounded in retrieved context.
 
-The response shall contain references to the source documents/chunks used to generate the answer.
+### FR-18 — Source Attribution
+The response shall contain source references for the retrieved documents or graph facts used in the answer.
 
-FR-15 — Evaluation
 
-The system shall support offline evaluation using RAGAS metrics.
+### FR-15 — Multiple Jev Ranking Modes
+The system should provide an abstraction that can support per-candidate semantic scoring,
+pairwise comparisons, and cross-encoded query-candidate ranking when enabled by the
+configured TypeSafe workflow.
 
-# Non-Functional Requirements
+### FR-16 — Context Selection
+The system shall support selecting a bounded set of high-value candidates after Jev
+scoring or ranking and before answer generation.
 
-These describe how well the system should operate.
+### FR-19 — Controlled Failure Handling
+A failed Jev scoring request shall not automatically fail the entire query. The system shall log the failure and apply a defined fallback ordering.
 
-NFR-01 — Performance
+### FR-20 — Evaluation
+The system shall support offline evaluation of retrieval, reranking, and answer quality.
 
-Query responses should complete within an acceptable latency target under normal workload.
+## Non-Functional Requirements
 
-For example:
+### NFR-01 — Performance
+The system should provide acceptable query latency under normal workload. An initial target may be less than five seconds, subject to benchmarking.
 
-    Target: < 5 seconds for normal queries
+### NFR-02 — Reranking Efficiency
+The system should limit the number of candidates sent to Jev using configurable retrieval and reranking limits.
 
-You can change this after benchmarking.
+### NFR-03 — Scalability
+The architecture should support increasing numbers of documents, chunks, entities, relationships, and concurrent queries.
 
-NFR-02 — Scalability
+### NFR-04 — Reliability
+Failures in Qdrant, Neo4j, Gemini, or Jev should be handled using controlled errors, retries where appropriate, fallback behavior, or partial results.
 
-The architecture should support increasing numbers of:
+### NFR-05 — Maintainability
+The codebase shall separate API, agent, retrieval, reranking, ingestion, database, evaluation, and utility modules.
 
-    Documents
-    Chunks
-    Entities
-    Relationships
-    Concurrent queries
+### NFR-06 — Observability
+Structured logs should include query ID, retrieval strategy, tool calls, candidate counts, Jev scoring failures, retrieval latency, reranking latency, LLM latency, and errors.
 
-without requiring major architectural changes.
+### NFR-07 — Security
+API keys and database credentials shall not be hardcoded and shall be supplied through environment variables.
 
-NFR-03 — Reliability
+### NFR-08 — Privacy
+Sensitive document content shall not be sent to external services without an explicit data-handling decision and documented configuration.
 
-Failures in one retrieval mechanism should not unnecessarily crash the entire query pipeline.
+### NFR-09 — Reproducibility
+The local development environment shall be reproducible using Docker Compose and uv.
 
-For example:
+### NFR-10 — Testability
+Retrieval, reranking, fusion, agent routing, and API behavior shall be independently testable.
 
-    Qdrant unavailable
-        ↓
-    Agent detects failure
-        ↓
-    Graph retrieval / fallback
-        ↓
-    Return partial result or controlled error
+### NFR-11 — Extensibility
+The system should allow additional retrieval or scoring tools to be added without major changes to the agent interface.
 
-NFR-04 — Maintainability
+### NFR-12 — Explainability
+The system should expose retrieval methods, source metadata, and—when configured—reranking scores for debugging and evaluation.
 
-The system should use modular components:
-
-    agent/
-    retrieval/
-    ingestion/
-    db/
-    api/
-    eval/
-    NFR-05 — Observability
-
-The system should provide structured logging for:
-
-    Query ID
-    Agent decisions
-    Tool calls
-    Retrieval latency
-    Number of retrieved results
-    LLM latency
-    Errors
-
-NFR-06 — Security
-
-Credentials must not be hardcoded.
-
-Sensitive configuration must be provided through environment variables.
-
-NFR-07 — Reproducibility
-
-The local development environment should be reproducible using Docker Compose and uv.
-
-NFR-08 — Testability
-
-Core components should be independently testable.
-
-NFR-09 — Extensibility
-
-The architecture should allow additional retrieval tools to be added later.
-
-For example:
-
-        vector_search
-        graph_search
-        keyword_search
-        SQL_search
-        web_search
+> **TypeSafe alignment note:** The Jev capabilities referenced here are based on the
+> official TypeSafe search-and-retrieval use cases: semantic search, query-to-candidate
+> relevance scoring, pairwise reranking, cross-encoding, and context selection.
+> Implementation-specific SDK methods and response fields must be verified against the
+> installed TypeSafe SDK version.
